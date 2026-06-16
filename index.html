@@ -25,24 +25,36 @@ async function loadData() {
   const res = await fetch(sheetURL);
   const text = await res.text();
 
-  let rows = text.split("\n").slice(1);
-  let data = rows.map(r => {
-    let cols = r.split(",");
-    return { name: cols[0], time: parseFloat(cols[1]) };
-  });
+  const rows = text.trim().split("\n").slice(1);
 
-  data.sort((a,b) => a.time - b.time);
+  let data = [];
 
-  let table = document.getElementById("board");
+  for (let row of rows) {
+    if (!row) continue;
+
+    // robust split (funktioniert bei , und ;)
+    let cols = row.split(/,|;/);
+
+    let name = (cols[0] || "").replace(/"/g, "").trim();
+    let time = parseFloat((cols[1] || "").replace(",", "."));
+
+    if (!name || isNaN(time)) continue;
+
+    data.push({ name, time });
+  }
+
+  data.sort((a, b) => a.time - b.time);
+
+  const table = document.getElementById("board");
   table.innerHTML = "<tr><th>Name</th><th>Zeit</th></tr>";
 
-  data.forEach(d => {
-    table.innerHTML += `<tr><td>${d.name}</td><td>${d.time}s</td></tr>`;
-  });
+  for (let d of data) {
+    table.innerHTML += `<tr><td>${d.name}</td><td>${d.time.toFixed(2)} s</td></tr>`;
+  }
 }
 
 loadData();
-setInterval(loadData, 5000);
+setInterval(loadData, 3000);
 </script>
 
 </body>
