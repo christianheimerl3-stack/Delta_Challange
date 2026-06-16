@@ -12,50 +12,35 @@
   </style>
 </head>
 <body>
-
 <h1>🏁 Messe Challenge Leaderboard</h1>
 <table id="board">
   <tr><th>Name</th><th>Zeit</th></tr>
 </table>
-
 <script>
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaFMS8eoUyhw7LfgrrYnS8zqmJYbmxD56vUn0OR8SFsamm3tLISpUIRiufwjq4tA-P11TLez2cxh_z/pub?output=csv";
-
 async function loadData() {
   const res = await fetch(sheetURL);
   const text = await res.text();
-
   const rows = text.trim().split("\n").slice(1);
-
   let data = [];
-
   for (let row of rows) {
     if (!row) continue;
-
     // robust split (funktioniert bei , und ;)
     let cols = row.split(/,|;/);
-
     let name = (cols[0] || "").replace(/"/g, "").trim();
     let time = parseFloat((cols[1] || "").replace(",", "."));
-
     if (!name || isNaN(time)) continue;
-
     data.push({ name, time });
   }
-
   data.sort((a, b) => a.time - b.time);
-
   const table = document.getElementById("board");
   table.innerHTML = "<tr><th>Name</th><th>Zeit</th></tr>";
-
   for (let d of data) {
     table.innerHTML += `<tr><td>${d.name}</td><td>${d.time.toFixed(2)} s</td></tr>`;
   }
 }
-
 loadData();
 setInterval(loadData, 3000);
 </script>
-
 </body>
 </html>
