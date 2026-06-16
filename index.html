@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Leaderboard</title>
+  <style>
+    body { font-family: Arial; background:#111; color:#fff; text-align:center; }
+    h1 { margin-top:20px; }
+    table { margin:auto; width:60%; border-collapse:collapse; }
+    th, td { padding:15px; border-bottom:1px solid #444; font-size:24px; }
+    th { color:#00ff99; }
+  </style>
+</head>
+<body>
+
+<h1>🏁 Messe Challenge Leaderboard</h1>
+<table id="board">
+  <tr><th>Name</th><th>Zeit</th></tr>
+</table>
+
+<script>
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaFMS8eoUyhw7LfgrrYnS8zqmJYbmxD56vUn0OR8SFsamm3tLISpUIRiufwjq4tA-P11TLez2cxh_z/pubhtml";
+
+async function loadData() {
+  const res = await fetch(sheetURL);
+  const text = await res.text();
+
+  let rows = text.split("\n").slice(1);
+  let data = rows.map(r => {
+    let cols = r.split(",");
+    return { name: cols[0], time: parseFloat(cols[1]) };
+  });
+
+  data.sort((a,b) => a.time - b.time);
+
+  let table = document.getElementById("board");
+  table.innerHTML = "<tr><th>Name</th><th>Zeit</th></tr>";
+
+  data.forEach(d => {
+    table.innerHTML += `<tr><td>${d.name}</td><td>${d.time}s</td></tr>`;
+  });
+}
+
+loadData();
+setInterval(loadData, 5000);
+</script>
+
+</body>
+</html>
