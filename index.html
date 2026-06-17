@@ -22,11 +22,13 @@ async function loadData() {
   const res = await fetch(sheetURL);
   const text = await res.text();
   const rows = text.trim().split("\n").slice(1);
+  console.log(rows);
   let data = [];
   for (let row of rows) {
     if (!row) continue;
     // robust split (funktioniert bei , und ;)
     let cols = row.split(/,|;/);
+    console.log(cols);
     let name = (cols[0] || "").replace(/"/g, "").trim();
     let time = parseFloat((cols[1] || "").replace(",", "."));
     if (!name || isNaN(time)) continue;
