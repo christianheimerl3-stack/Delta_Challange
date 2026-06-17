@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title> Deltachallenge Leaderboard</title>
+<title>Messe Challenge Leaderboard</title>
 
 <style>
 body {
@@ -37,19 +37,16 @@ td {
     border-bottom: 1px solid #333;
 }
 
-/* Gold */
 tr:nth-child(2) td {
     color: gold;
     font-weight: bold;
 }
 
-/* Silber */
 tr:nth-child(3) td {
     color: silver;
     font-weight: bold;
 }
 
-/* Bronze */
 tr:nth-child(4) td {
     color: #cd7f32;
     font-weight: bold;
@@ -74,6 +71,42 @@ tr:nth-child(4) td {
 
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vRaFMS8eoUyhw7LfgrrYnS8zqmJYbmxD56vUn0OR8SFsamm3tLISpUIRiufwjq4tA-P11TLez2cxh_z/pub?gid=0&single=true&output=csv";
+
+/*
+  Wandelt z.B.
+  0:12.34 -> 12.34 Sekunden
+  1:03.57 -> 63.57 Sekunden
+*/
+function parseTime(timeText) {
+
+    const parts = timeText.trim().split(":");
+
+    if (parts.length !== 2) {
+        return NaN;
+    }
+
+    const minutes = parseInt(parts[0], 10);
+    const seconds = parseFloat(parts[1]);
+
+    return (minutes * 60) + seconds;
+}
+
+/*
+  Wandelt Sekunden zurück in:
+  M:SS.hh
+*/
+function formatTime(totalSeconds) {
+
+    const minutes = Math.floor(totalSeconds / 60);
+
+    const seconds = totalSeconds % 60;
+
+    return (
+        minutes +
+        ":" +
+        seconds.toFixed(2).padStart(5, "0")
+    );
+}
 
 async function loadData() {
 
@@ -100,12 +133,11 @@ async function loadData() {
                 .replace(/"/g, "")
                 .trim();
 
-            let timeText = (cols[2] || "")
+            const timeText = (cols[2] || "")
                 .replace(/"/g, "")
-                .trim()
-                .replace(",", ".");
+                .trim();
 
-            const time = parseFloat(timeText);
+            const time = parseTime(timeText);
 
             if (
                 !name ||
@@ -122,7 +154,7 @@ async function loadData() {
             });
         }
 
-        // Nach Zeit sortieren (kleinste Zeit gewinnt)
+        // Schnellste Zeit zuerst
         data.sort((a, b) => a.time - b.time);
 
         const table = document.getElementById("board");
@@ -143,19 +175,30 @@ async function loadData() {
                     <td>${index + 1}</td>
                     <td>${player.name}</td>
                     <td>${player.company}</td>
-                    <td>${player.time.toFixed(2)} s</td>
+                    <td>${formatTime(player.time)}</td>
                 </tr>
             `;
         });
 
     } catch (error) {
-        console.error("Fehler beim Laden der CSV:", error);
+
+        console.error("Fehler beim Laden:", error);
+
+        document.getElementById("board").innerHTML = `
+            <tr>
+                <th>Platz</th>
+                <th>Name</th>
+                <th>Firma</th>
+                <th>Zeit</th>
+            </tr>
+            <tr>
+                <td colspan="4">Fehler beim Laden der Daten</td>
+            </tr>
+        `;
     }
 }
 
 loadData();
-
-// Aktualisiert alle 3 Sekunden
 setInterval(loadData, 3000);
 
 </script>
