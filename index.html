@@ -37,16 +37,19 @@ td {
     border-bottom: 1px solid #333;
 }
 
+/* Gold */
 tr:nth-child(2) td {
     color: gold;
     font-weight: bold;
 }
 
+/* Silber */
 tr:nth-child(3) td {
     color: silver;
     font-weight: bold;
 }
 
+/* Bronze */
 tr:nth-child(4) td {
     color: #cd7f32;
     font-weight: bold;
@@ -74,74 +77,85 @@ const sheetURL =
 
 async function loadData() {
 
-    const res = await fetch(sheetURL);
-    const text = await res.text();
+    try {
 
-    const rows = text.trim().split("\n").slice(1);
+        const res = await fetch(sheetURL);
+        const text = await res.text();
 
-    let data = [];
+        const rows = text.trim().split("\n").slice(1);
 
-    for (let row of rows) {
+        let data = [];
 
-        if (!row.trim()) continue;
+        for (let row of rows) {
 
-        const cols = row.split(",");
+            if (!row.trim()) continue;
 
-        const rank = (cols[0] || "").replace(/"/g, "").trim();
-        const name = (cols[1] || "").replace(/"/g, "").trim();
-        const company = (cols[2] || "").replace(/"/g, "").trim();
+            const cols = row.split(",");
 
-        let timeText = (cols[3] || "")
-            .replace(/"/g, "")
-            .trim()
-            .replace(",", ".");
+            const name = (cols[0] || "")
+                .replace(/"/g, "")
+                .trim();
 
-        const time = parseFloat(timeText);
+            const company = (cols[1] || "")
+                .replace(/"/g, "")
+                .trim();
 
-        if (
-            !name ||
-            name === "#N/A" ||
-            rank === "#N/A" ||
-            isNaN(time)
-        ) {
-            continue;
+            let timeText = (cols[2] || "")
+                .replace(/"/g, "")
+                .trim()
+                .replace(",", ".");
+
+            const time = parseFloat(timeText);
+
+            if (
+                !name ||
+                name === "#N/A" ||
+                isNaN(time)
+            ) {
+                continue;
+            }
+
+            data.push({
+                name,
+                company,
+                time
+            });
         }
 
-        data.push({
-            rank,
-            name,
-            company,
-            time
-        });
-    }
+        // Nach Zeit sortieren (kleinste Zeit gewinnt)
+        data.sort((a, b) => a.time - b.time);
 
-    data.sort((a, b) => a.time - b.time);
+        const table = document.getElementById("board");
 
-    const table = document.getElementById("board");
-
-    table.innerHTML = `
-        <tr>
-            <th>Platz</th>
-            <th>Name</th>
-            <th>Firma</th>
-            <th>Zeit</th>
-        </tr>
-    `;
-
-    data.forEach((player, index) => {
-
-        table.innerHTML += `
+        table.innerHTML = `
             <tr>
-                <td>${index + 1}</td>
-                <td>${player.name}</td>
-                <td>${player.company}</td>
-                <td>${player.time.toFixed(2)} s</td>
+                <th>Platz</th>
+                <th>Name</th>
+                <th>Firma</th>
+                <th>Zeit</th>
             </tr>
         `;
-    });
+
+        data.forEach((player, index) => {
+
+            table.innerHTML += `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${player.name}</td>
+                    <td>${player.company}</td>
+                    <td>${player.time.toFixed(2)} s</td>
+                </tr>
+            `;
+        });
+
+    } catch (error) {
+        console.error("Fehler beim Laden der CSV:", error);
+    }
 }
 
 loadData();
+
+// Aktualisiert alle 3 Sekunden
 setInterval(loadData, 3000);
 
 </script>
